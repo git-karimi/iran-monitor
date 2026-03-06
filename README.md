@@ -1,9 +1,9 @@
-[README.md](https://github.com/user-attachments/files/25805683/README.md)
+[README.md](https://github.com/user-attachments/files/25805702/README.md)
 # 📡 Iran Internet Monitor
 
 > ابزار مانیتورینگ اینترنت ایران و راهنمای ارتباط با خانواده در شرایط قطعی
 
-**[🌐 مشاهده داشبورد زنده](https://iran.yourdomain.com)** &nbsp;|&nbsp; ساخته‌شده برای: آلمان → ایران
+**[🌐 مشاهده داشبورد زنده](https://iran.book-hub.org)** &nbsp;|&nbsp; ساخته‌شده برای: آلمان → ایران
 
 ---
 
