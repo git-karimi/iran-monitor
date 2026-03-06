@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ایران نت‌مانیتور | Iran Net Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: rgba(255,255,255,0.07);
+    --green: #00e676;
+    --yellow: #ffd740;
+    --orange: #ff6d00;
+    --red: #ff1744;
+    --blue: #40c4ff;
+    --muted: #5a6070;
+    --text: #e8eaf0;
+    --text2: #9aa0b0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Vazirmatn', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* animated grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(64,196,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(64,196,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 24px 20px; }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-icon {
+    width: 42px; height: 42px;
+    border: 2px solid var(--blue);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 20px rgba(64,196,255,0.3);
+    animation: pulse-border 3s ease-in-out infinite;
+  }
+  @keyframes pulse-border {
+    0%,100% { box-shadow: 0 0 10px rgba(64,196,255,0.2); }
+    50% { box-shadow: 0 0 30px rgba(64,196,255,0.5); }
+  }
+  .logo h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  .logo span { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .last-update {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: left;
+    direction: ltr;
+  }
+  .last-update b { color: var(--blue); }
+
+  /* STATUS CARD (big) */
+  .status-main {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .status-main::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--status-color, rgba(64,196,255,0.15)) 0%, transparent 70%);
+    pointer-events: none;
+    transition: background 1s ease;
+  }
+  .status-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .status-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--status-color, var(--blue));
+    box-shadow: 0 0 0 4px rgba(64,196,255,0.2);
+    animation: ping 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes ping {
+    0%,100% { box-shadow: 0 0 0 4px rgba(64,196,255,0.2); }
+    50% { box-shadow: 0 0 0 10px rgba(64,196,255,0.05); }
+  }
+  .status-label { font-size: 13px; color: var(--muted); }
+  .status-value { font-size: 26px; font-weight: 900; color: var(--status-color, var(--blue)); letter-spacing: -0.5px; }
+
+  .status-bars { display: flex; gap: 3px; margin-top: 16px; }
+  .bar {
+    flex: 1; height: 6px; border-radius: 3px;
+    background: var(--surface2);
+    transition: background 0.6s ease;
+  }
+  .bar.active { background: var(--status-color, var(--blue)); }
+
+  .status-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .meta-item {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .meta-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .meta-val { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  /* RECOMMENDATION */
+  .rec-card {
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    border: 1.5px solid var(--rec-color, var(--blue));
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+    position: relative;
+  }
+  .rec-title {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .rec-method {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--rec-color, var(--blue));
+    margin-bottom: 8px;
+  }
+  .rec-desc { font-size: 14px; color: var(--text2); line-height: 1.7; }
+  .rec-apps {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+  }
+  .app-tag {
+    padding: 5px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .app-tag.primary {
+    border-color: var(--rec-color, var(--blue));
+    color: var(--rec-color, var(--blue));
+  }
+
+  /* LAYERS */
+  .section-title {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    margin-top: 24px;
+  }
+  .layers { display: flex; flex-direction: column; gap: 10px; }
+  .layer-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .layer-card:hover { background: var(--surface2); }
+  .layer-card.active-layer {
+    border-color: var(--layer-color);
+    background: var(--surface2);
+  }
+  .layer-num {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--layer-color);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+    color: #000;
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+  .layer-info { flex: 1; }
+  .layer-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .layer-when { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .layer-apps { display: flex; flex-wrap: wrap; gap: 6px; }
+  .layer-app {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .layer-status {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.3);
+    align-self: flex-start;
+    flex-shrink: 0;
+  }
+
+  /* TOOLS */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, transform 0.2s;
+    display: block;
+  }
+  .tool-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+  .tool-icon { font-size: 22px; margin-bottom: 8px; }
+  .tool-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tool-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .tool-link {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--blue);
+    margin-top: 8px;
+    direction: ltr;
+    display: block;
+  }
+
+  /* PYTHON SECTION */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    position: relative;
+    direction: ltr;
+    text-align: left;
+  }
+  .code-block .comment { color: #6a9955; }
+  .code-block .keyword { color: #569cd6; }
+  .code-block .string { color: #ce9178; }
+  .code-block .func { color: #dcdcaa; }
+  .code-block .num { color: #b5cea8; }
+  .copy-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--blue); color: #000; }
+
+  /* HISTORY */
+  .history-bar {
+    display: flex;
+    gap: 3px;
+    height: 40px;
+    align-items: flex-end;
+    margin-top: 16px;
+  }
+  .h-bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    transition: height 0.3s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .h-bar:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    direction: rtl;
+    font-family: 'Vazirmatn', sans-serif;
+    margin-bottom: 4px;
+    z-index: 10;
+  }
+
+  /* REFRESH BTN */
+  .refresh-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 24px;
+    width: 100%;
+    justify-content: center;
+  }
+  .refresh-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .refresh-btn.loading .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* FOOTER */
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sources { display: flex; gap: 12px; }
+  .src-link {
+    color: var(--blue);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    direction: ltr;
+  }
+  .src-link:hover { text-decoration: underline; }
+
+  /* ALERT banner */
+  .alert-banner {
+    background: rgba(255,23,68,0.1);
+    border: 1px solid rgba(255,23,68,0.4);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #ff8a80;
+    margin-bottom: 16px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert-banner.visible { display: flex; }
+
+  @media (max-width: 600px) {
+    .status-meta { grid-template-columns: 1fr 1fr; }
+    .tools-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📡</div>
+      <div>
+        <h1>ایران نت‌مانیتور</h1>
+        <span>Iran Internet Status Monitor — DE → IR</span>
+      </div>
+    </div>
+    <div class="last-update">
+      آخرین بروزرسانی<br>
+      <b id="update-time">در حال بارگذاری...</b>
+    </div>
+  </header>
+
+  <div class="alert-banner" id="alert-banner">
+    ⚠️ <span id="alert-text"></span>
+  </div>
+
+  <button class="refresh-btn" id="refresh-btn" onclick="checkStatus()">
+    <span class="spin" id="spin-icon">↻</span>
+    <span id="refresh-label">بررسی وضعیت اینترنت ایران</span>
+  </button>
+
+  <!-- MAIN STATUS -->
+  <div class="status-main" id="status-main">
+    <div class="status-header">
+      <div class="status-dot" id="status-dot"></div>
+      <div>
+        <div class="status-label">وضعیت کلی اینترنت ایران</div>
+        <div class="status-value" id="status-value">در حال بررسی...</div>
+      </div>
+    </div>
+    <div class="status-bars" id="status-bars">
+      <!-- filled by JS -->
+    </div>
+    <div class="status-meta">
+      <div class="meta-item">
+        <div class="meta-label">سطح دسترسی</div>
+        <div class="meta-val" id="access-pct">—</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">آخرین رویداد</div>
+        <div class="meta-val" id="last-event" style="font-size:12px;line-height:1.4">—</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">توصیه ارتباطی</div>
+        <div class="meta-val" id="rec-short" style="font-size:13px">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATION -->
+  <div class="rec-card" id="rec-card">
+    <div class="rec-title">// BEST CONTACT METHOD RIGHT NOW</div>
+    <div class="rec-method" id="rec-method">در حال تحلیل...</div>
+    <div class="rec-desc" id="rec-desc">لطفاً ابتدا وضعیت را بررسی کنید.</div>
+    <div class="rec-apps" id="rec-apps"></div>
+  </div>
+
+  <!-- LAYERS -->
+  <div class="section-title">// COMMUNICATION LAYERS — پلن چندلایه</div>
+  <div class="layers">
+
+    <div class="layer-card" style="--layer-color: var(--green)">
+      <div class="layer-num" style="background: var(--green)">۱</div>
+      <div class="layer-info">
+        <div class="layer-name">🟢 لایه ۱ — اینترنت معمولی یا VPN</div>
+        <div class="layer-when">وقتی: اینترنت نیمه‌کار یا خوب است</div>
+        <div class="layer-apps">
+          <span class="layer-app">📹 تماس ویدیویی</span>
+          <span class="layer-app">WhatsApp (+ VPN)</span>
+          <span class="layer-app">Telegram (+ VPN)</span>
+          <span class="layer-app">Signal (+ VPN)</span>
+          <span class="layer-app">Google Meet</span>
+        </div>
+      </div>
+      <div class="layer-status" id="l1-status" style="color: var(--green)">؟</div>
+    </div>
+
+    <div class="layer-card" style="--layer-color: var(--yellow)">
+      <div class="layer-num" style="background: var(--yellow)">۲</div>
+      <div class="layer-info">
+        <div class="layer-name">🟡 لایه ۲ — تلفن از طریق PSTN</div>
+        <div class="layer-when">وقتی: اینترنت قطع است اما خط تلفن ثابت/موبایل دارند</div>
+        <div class="layer-apps">
+          <span class="layer-app">☎️ Mytello</span>
+          <span class="layer-app">Yolla</span>
+          <span class="layer-app">Talk360</span>
+          <span class="layer-app">Rebtel</span>
+        </div>
+        <div style="font-size:11px; color: var(--muted); margin-top: 8px; line-height:1.6">
+          ⚙️ این سرویس‌ها از اروپا زنگ می‌زنند و به شبکه تلفن سنتی ایران وصل می‌شن — اینترنت لازم ندارند
+        </div>
+      </div>
+      <div class="layer-status" id="l2-status" style="color: var(--yellow)">✓ آماده</div>
+    </div>
+
+    <div class="layer-card" style="--layer-color: var(--red)">
+      <div class="layer-num" style="background: var(--red)">۳</div>
+      <div class="layer-info">
+        <div class="layer-name">🔴 لایه ۳ — پیامک بین‌المللی SMS</div>
+        <div class="layer-when">وقتی: اینترنت کاملاً قطع است</div>
+        <div class="layer-apps">
+          <span class="layer-app">📱 SMS بین‌المللی</span>
+          <span class="layer-app">Twilio API</span>
+          <span class="layer-app">MessageBird</span>
+          <span class="layer-app">Vonage</span>
+        </div>
+        <div style="font-size:11px; color: var(--muted); margin-top: 8px; line-height:1.6">
+          ⚙️ پیامک از طریق شبکه موبایل منتقل می‌شه، نه اینترنت — حتی در بدترین قطعی‌ها کار می‌کند
+        </div>
+      </div>
+      <div class="layer-status" id="l3-status" style="color: var(--red)">آخرین راه</div>
+    </div>
+
+  </div>
+
+  <!-- MONITORING TOOLS -->
+  <div class="section-title">// MONITORING SOURCES — منابع مانیتورینگ</div>
+  <div class="tools-grid">
+    <a href="https://radar.cloudflare.com/traffic/ir" target="_blank" class="tool-card">
+      <div class="tool-icon">☁️</div>
+      <div class="tool-name">Cloudflare Radar</div>
+      <div class="tool-desc">ترافیک اینترنت ایران در زمان واقعی — دقیق‌ترین ابزار برای قطعی‌های سراسری</div>
+      <span class="tool-link">radar.cloudflare.com/traffic/ir →</span>
+    </a>
+    <a href="https://ioda.inetintel.cc.gatech.edu/country/IR" target="_blank" class="tool-card">
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">IODA (Georgia Tech)</div>
+      <div class="tool-desc">تشخیص قطعی اینترنت — نمودار تاریخی اختلال‌های ایران با دقت دقیقه‌ای</div>
+      <span class="tool-link">ioda.inetintel.cc.gatech.edu →</span>
+    </a>
+    <a href="https://explorer.ooni.org/chart/mat?probe_cc=IR" target="_blank" class="tool-card">
+      <div class="tool-icon">🔬</div>
+      <div class="tool-name">OONI Explorer</div>
+      <div class="tool-desc">تست‌های خودکار دسترسی به سایت‌ها در ایران — بر اساس داده‌های داوطلبان داخل ایران</div>
+      <span class="tool-link">explorer.ooni.org →</span>
+    </a>
+    <a href="https://netblocks.org/tag/iran" target="_blank" class="tool-card">
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">NetBlocks</div>
+      <div class="tool-desc">گزارش‌های اختلال شبکه در ایران — ردیابی قطعی‌های هدفمند پلتفرم‌ها</div>
+      <span class="tool-link">netblocks.org/tag/iran →</span>
+    </a>
+  </div>
+
+  <!-- PYTHON SCRIPT -->
+  <div class="section-title">// PYTHON AUTO-MONITOR — اسکریپت خودکار</div>
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px;">
+    <div style="font-size:13px; color: var(--text2); line-height: 1.8; margin-bottom: 16px;">
+      این اسکریپت Python را روی کامپیوترت اجرا کن. هر ۱۵ دقیقه وضعیت اینترنت ایران را بررسی می‌کند
+      و اگر قطعی تشخیص داد، به‌صورت خودکار با پیامک یا تلفن با خانواده‌ات تماس می‌گیرد.
+    </div>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode()">کپی کد</button>
+<span class="comment"># iran_monitor.py — نصب: pip install requests schedule</span>
+<span class="comment"># تنظیمات را در بخش CONFIG وارد کن</span>
+
+<span class="keyword">import</span> requests, schedule, time, os
+<span class="keyword">from</span> datetime <span class="keyword">import</span> datetime
+
+<span class="comment"># ═══ CONFIG ═══════════════════════════════════════════</span>
+CLOUDFLARE_API = <span class="string">"https://api.cloudflare.com/client/v4/radar/traffic-anomalies"</span>
+IODA_API = <span class="string">"https://api.ioda.inetintel.cc.gatech.edu/v2/signals/raw?entityType=country&entityCode=IR&datasource=bgp"</span>
+
+<span class="comment"># شماره خانواده در ایران (با کد کشور)</span>
+IRAN_PHONE = <span class="string">"+989XXXXXXXXX"</span>
+<span class="comment"># شماره تلفن ثابت ایران</span>
+IRAN_LANDLINE = <span class="string">"+9821XXXXXXXX"</span>
+
+<span class="comment"># Twilio برای SMS خودکار (رایگان برای آزمایش)</span>
+TWILIO_SID = <span class="string">"ACxxxxxxxxxxxxxxxx"</span>
+TWILIO_TOKEN = <span class="string">"your_auth_token"</span>
+TWILIO_FROM = <span class="string">"+49XXXXXXXXX"</span>  <span class="comment"># شماره آلمانت</span>
+<span class="comment"># ══════════════════════════════════════════════════════</span>
+
+<span class="keyword">def</span> <span class="func">check_cloudflare</span>():
+    <span class="comment">"""بررسی ترافیک ایران از طریق Cloudflare Radar"""</span>
+    <span class="keyword">try</span>:
+        r = requests.<span class="func">get</span>(
+            <span class="string">"https://api.cloudflare.com/client/v4/radar/netflows/timeseries"</span>,
+            params={<span class="string">"location"</span>: <span class="string">"IR"</span>, <span class="string">"dateRange"</span>: <span class="string">"1h"</span>},
+            timeout=<span class="num">10</span>
+        )
+        data = r.<span class="func">json</span>()
+        <span class="comment"># اگر ترافیک > 30% افت داشت = قطعی احتمالی</span>
+        values = data.get(<span class="string">"result"</span>, {}).get(<span class="string">"serie_0"</span>, {}).get(<span class="string">"values"</span>, [])
+        <span class="keyword">if</span> <span class="func">len</span>(values) >= <span class="num">2</span>:
+            drop = (values[<span class="num">0</span>] - values[-<span class="num">1</span>]) / max(values[<span class="num">0</span>], <span class="num">1</span>)
+            <span class="keyword">return</span> drop > <span class="num">0.3</span>
+    <span class="keyword">except</span>: <span class="keyword">pass</span>
+    <span class="keyword">return</span> <span class="keyword">False</span>
+
+<span class="keyword">def</span> <span class="func">check_ioda</span>():
+    <span class="comment">"""بررسی سیگنال BGP ایران از IODA"""</span>
+    <span class="keyword">try</span>:
+        r = requests.<span class="func">get</span>(IODA_API, timeout=<span class="num">10</span>)
+        data = r.<span class="func">json</span>()
+        alerts = data.get(<span class="string">"data"</span>, {}).get(<span class="string">"IR"</span>, [])
+        <span class="keyword">return</span> <span class="func">len</span>(alerts) > <span class="num">0</span>
+    <span class="keyword">except</span>: <span class="keyword">return</span> <span class="keyword">False</span>
+
+<span class="keyword">def</span> <span class="func">send_sms</span>(msg):
+    <span class="comment">"""ارسال SMS از طریق Twilio"""</span>
+    <span class="keyword">try</span>:
+        <span class="keyword">from</span> twilio.rest <span class="keyword">import</span> Client
+        client = <span class="func">Client</span>(TWILIO_SID, TWILIO_TOKEN)
+        client.messages.<span class="func">create</span>(
+            body=msg, from_=TWILIO_FROM, to=IRAN_PHONE
+        )
+        <span class="func">print</span>(<span class="string">f"✓ SMS ارسال شد: {msg[:50]}"</span>)
+    <span class="keyword">except Exception as</span> e:
+        <span class="func">print</span>(<span class="string">f"✗ خطا در ارسال SMS: {e}"</span>)
+
+<span class="keyword">def</span> <span class="func">monitor</span>():
+    now = datetime.<span class="func">now</span>().<span class="func">strftime</span>(<span class="string">"%H:%M:%S"</span>)
+    <span class="func">print</span>(<span class="string">f"[{now}] در حال بررسی وضعیت اینترنت ایران..."</span>)
+
+    cf_alert = <span class="func">check_cloudflare</span>()
+    ioda_alert = <span class="func">check_ioda</span>()
+
+    <span class="keyword">if</span> cf_alert <span class="keyword">and</span> ioda_alert:
+        <span class="func">print</span>(<span class="string">"🔴 قطعی تأیید شد — ارسال پیامک..."</span>)
+        <span class="func">send_sms</span>(<span class="string">"سلام. می‌خواستم بگم حالم خوبه. اگه نتونستم زنگ بزنم نگران نباش. ❤️"</span>)
+    <span class="keyword">elif</span> cf_alert <span class="keyword">or</span> ioda_alert:
+        <span class="func">print</span>(<span class="string">"🟡 اخطار جزئی — وضعیت را دنبال می‌کنم"</span>)
+    <span class="keyword">else</span>:
+        <span class="func">print</span>(<span class="string">"🟢 اینترنت ایران نرمال است"</span>)
+
+<span class="comment"># هر ۱۵ دقیقه یکبار بررسی کن</span>
+schedule.<span class="func">every</span>(<span class="num">15</span>).minutes.<span class="func">do</span>(monitor)
+<span class="func">monitor</span>()  <span class="comment"># یک بار هم الان اجرا کن</span>
+<span class="keyword">while</span> <span class="keyword">True</span>: schedule.<span class="func">run_pending</span>(); time.<span class="func">sleep</span>(<span class="num">60</span>)
+    </div>
+  </div>
+
+  <!-- HISTORY SIMULATED -->
+  <div class="section-title">// 24H SIMULATED HISTORY — نمونه تاریخچه ۲۴ ساعته</div>
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+    <div style="font-size:11px; color: var(--muted); margin-bottom: 12px; font-family: 'JetBrains Mono', monospace;">ترافیک نرمال‌شده ایران — هر نوار = ۳۰ دقیقه</div>
+    <div class="history-bar" id="history-bar"></div>
+    <div style="display:flex; justify-content:space-between; font-size:10px; color: var(--muted); margin-top:8px; font-family: 'JetBrains Mono', monospace; direction:ltr;">
+      <span>24h ago</span><span>18h</span><span>12h</span><span>6h</span><span>now</span>
+    </div>
+  </div>
+
+  <footer>
+    <span>ساخته شده برای ارتباط با خانواده در ایران | آلمان → ایران</span>
+    <div class="sources">
+      <a href="https://radar.cloudflare.com" class="src-link" target="_blank">Cloudflare</a>
+      <a href="https://ioda.inetintel.cc.gatech.edu" class="src-link" target="_blank">IODA</a>
+      <a href="https://ooni.org" class="src-link" target="_blank">OONI</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+let currentLevel = null;
+
+// ⚠️ واقعیت ایران: واتساپ، اینستاگرام، یوتیوب همیشه فیلترند — حتی در شرایط "نرمال"
+const STATUSES = {
+  normal: {
+    color: '#00e676',
+    label: '🟢 اینترنت پایدار',
+    bars: 8,
+    pct: '~75%',
+    event: 'فیلترینگ معمول',
+    recShort: 'VPN + تلگرام',
+    method: '📱 تلگرام یا واتساپ با VPN',
+    desc: 'اینترنت ایران نسبتاً پایدار است. توجه: واتساپ، اینستاگرام و یوتیوب همیشه فیلترند — حتی الان. برای تماس ویدیویی باید VPN داشته باشند. بهترین VPN رایگان: Psiphon3 یا Lantern.',
+    apps: ['تلگرام + VPN', 'واتساپ + VPN', 'Psiphon3 رایگان', 'Mytello بدون VPN'],
+    note: '⚠️ واتساپ همیشه فیلتر است — VPN لازم دارد'
+  },
+  partial: {
+    color: '#ffd740',
+    label: '🟡 اختلال جزئی',
+    bars: 5,
+    pct: '~40%',
+    event: 'فیلترینگ تشدید شده',
+    recShort: 'Mytello یا تلفن',
+    method: '☎️ تلفن از طریق Mytello',
+    desc: 'اینترنت ایران کُند یا ناپایدار است. VPNها ممکن است قطع‌وصل شوند. مطمئن‌ترین راه: Mytello که از شبکه تلفن سنتی استفاده می‌کند و نیازی به اینترنت ندارد.',
+    apps: ['Mytello اولویت', 'Yolla', 'Talk360', 'تلگرام + VPN'],
+    note: '📞 Mytello: زنگ می‌زنی، طرف ایران فقط گوشی برمی‌داره'
+  },
+  bad: {
+    color: '#ff6d00',
+    label: '🟠 اختلال شدید',
+    bars: 2,
+    pct: '~10%',
+    event: 'قطعی نسبی',
+    recShort: 'خط ثابت فوری',
+    method: '☎️ خط ثابت از طریق Mytello',
+    desc: 'اینترنت ایران به شدت مختل است — VPN هم کار نمی‌کند. بهترین راه: زنگ زدن به خط ثابت خانه از طریق Mytello. اگر جواب ندادند، SMS بفرست.',
+    apps: ['Mytello → خط ثابت', 'Talk360', 'SMS بین‌المللی'],
+    note: '🔴 VPN در این شرایط کار نمی‌کند'
+  },
+  down: {
+    color: '#ff1744',
+    label: '🔴 قطعی کامل',
+    bars: 0,
+    pct: '< 3%',
+    event: '⚠️ قطعی سراسری',
+    recShort: 'SMS فوری',
+    method: '📱 پیامک SMS بین‌المللی',
+    desc: 'اینترنت ایران کاملاً قطع است. هیچ اپلیکیشنی کار نمی‌کند. تنها راه: پیامک SMS از طریق شبکه موبایل. همچنین با خط ثابت از طریق Mytello امتحان کن.',
+    apps: ['SMS بین‌المللی اول', 'Mytello → خط ثابت', 'Twilio API'],
+    note: '🚨 فقط SMS و خط ثابت کار می‌کنند'
+  },
+  unknown: {
+    color: '#40c4ff',
+    label: '⚪ وضعیت نامشخص',
+    bars: 4,
+    pct: '؟',
+    event: 'داده در دسترس نیست',
+    recShort: 'Mytello + SMS',
+    method: '☎️ Mytello + SMS احتیاطی',
+    desc: 'در حال حاضر نمی‌توان وضعیت اینترنت ایران را تأیید کرد. پیشنهاد احتیاطی: از Mytello برای تماس تلفنی و SMS برای پیام استفاده کن.',
+    apps: ['Mytello', 'SMS', 'Talk360'],
+    note: 'سرورهای مانیتورینگ موقتاً در دسترس نیستند'
+  }
+};
+
+// ── UI UPDATE ──────────────────────────────────────────
+function applyStatus(level) {
+  currentLevel = level;
+  const s = STATUSES[level] || STATUSES.unknown;
+
+  document.documentElement.style.setProperty('--status-color', s.color);
+  document.querySelector('.status-main').style.setProperty('--status-color', s.color);
+  document.getElementById('status-dot').style.background = s.color;
+  document.getElementById('status-dot').style.boxShadow = `0 0 0 4px ${s.color}22`;
+  document.getElementById('status-value').textContent = s.label;
+  document.getElementById('status-value').style.color = s.color;
+  document.getElementById('access-pct').textContent = s.pct;
+  document.getElementById('access-pct').style.color = s.color;
+  document.getElementById('last-event').textContent = s.event;
+  document.getElementById('rec-short').textContent = s.recShort;
+  document.getElementById('rec-short').style.color = s.color;
+
+  // bars
+  const barsEl = document.getElementById('status-bars');
+  barsEl.innerHTML = '';
+  for(let i=0;i<10;i++){
+    const b = document.createElement('div');
+    b.className = 'bar' + (i < s.bars ? ' active' : '');
+    barsEl.appendChild(b);
+  }
+
+  // rec card
+  const rc = document.getElementById('rec-card');
+  rc.style.setProperty('--rec-color', s.color);
+  rc.style.borderColor = s.color;
+  document.getElementById('rec-method').textContent = s.method;
+  document.getElementById('rec-method').style.color = s.color;
+  document.getElementById('rec-desc').textContent = s.desc;
+
+  const appsEl = document.getElementById('rec-apps');
+  appsEl.innerHTML = '';
+  s.apps.forEach((a,i) => {
+    const tag = document.createElement('span');
+    tag.className = 'app-tag' + (i===0 ? ' primary' : '');
+    tag.textContent = a;
+    if(i===0) tag.style.borderColor = s.color, tag.style.color = s.color;
+    appsEl.appendChild(tag);
+  });
+  // نمایش نکته واقعیت ایران
+  if(s.note) {
+    const note = document.createElement('div');
+    note.style.cssText = `width:100%; margin-top:10px; padding:8px 12px; background:rgba(255,255,255,0.04); border-radius:8px; font-size:12px; color:${s.color}; opacity:0.9;`;
+    note.textContent = s.note;
+    appsEl.appendChild(note);
+  }
+
+  // layer statuses
+  const l1 = document.getElementById('l1-status');
+  const l2 = document.getElementById('l2-status');
+  const l3 = document.getElementById('l3-status');
+  if(level === 'normal') {
+    l1.textContent = '✓ با VPN'; l1.style.color = '#00e676';
+    l2.textContent = 'پشتیبان'; l2.style.color = '#ffd740';
+    l3.textContent = 'آخرین راه'; l3.style.color = '#ff1744';
+  } else if(level === 'partial') {
+    l1.textContent = '~ ضعیف'; l1.style.color = '#ffd740';
+    l2.textContent = '✓ فعال'; l2.style.color = '#ffd740';
+    l3.textContent = 'آخرین راه'; l3.style.color = '#ff1744';
+  } else if(level === 'bad') {
+    l1.textContent = '✗ قطع'; l1.style.color = '#ff1744';
+    l2.textContent = '✓ فعال'; l2.style.color = '#ff6d00';
+    l3.textContent = 'آماده'; l3.style.color = '#ff6d00';
+  } else if(level === 'down') {
+    l1.textContent = '✗ قطع'; l1.style.color = '#ff1744';
+    l2.textContent = '✓ فعال'; l2.style.color = '#ff6d00';
+    l3.textContent = '🚨 فعال'; l3.style.color = '#ff1744';
+  } else {
+    l1.textContent = '؟'; l1.style.color = '#40c4ff';
+    l2.textContent = '✓ آماده'; l2.style.color = '#40c4ff';
+    l3.textContent = '✓ آماده'; l3.style.color = '#40c4ff';
+  }
+
+  // alert banner
+  const ab = document.getElementById('alert-banner');
+  if(level === 'down') {
+    ab.classList.add('visible');
+    ab.style.background = 'rgba(255,23,68,0.1)';
+    ab.style.borderColor = 'rgba(255,23,68,0.4)';
+    ab.style.color = '#ff8a80';
+    document.getElementById('alert-text').textContent = 'قطعی سراسری اینترنت ایران — فوری: SMS بفرست و با Mytello با خط ثابت تماس بگیر';
+  } else if(level === 'bad') {
+    ab.classList.add('visible');
+    ab.style.background = 'rgba(255,109,0,0.1)';
+    ab.style.borderColor = 'rgba(255,109,0,0.4)';
+    ab.style.color = '#ffab40';
+    document.getElementById('alert-text').textContent = 'اختلال شدید — VPN کار نمی‌کند. با Mytello به خط ثابت زنگ بزن';
+  } else if(level === 'normal') {
+    ab.classList.add('visible');
+    ab.style.background = 'rgba(255,215,64,0.07)';
+    ab.style.borderColor = 'rgba(255,215,64,0.3)';
+    ab.style.color = '#ffd740';
+    document.getElementById('alert-text').textContent = 'یادآوری: واتساپ، اینستاگرام و یوتیوب در ایران همیشه فیلترند — حتی در شرایط عادی';
+  } else {
+    ab.classList.remove('visible');
+  }
+
+  // update time
+  const now = new Date();
+  document.getElementById('update-time').textContent =
+    now.toLocaleTimeString('fa-IR') + ' · ' + now.toLocaleDateString('fa-IR');
+}
+
+// ── REAL API CHECK ─────────────────────────────────────
+async function checkStatus() {
+  const btn = document.getElementById('refresh-btn');
+  const lbl = document.getElementById('refresh-label');
+  btn.classList.add('loading');
+  lbl.textContent = 'در حال بررسی...';
+
+  let level = 'unknown';
+  let sourceInfo = '';
+
+  try {
+    // تلاش اول: API خودمون روی Vercel (داده واقعی)
+    const r = await fetch('/api/status', {
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (r.ok) {
+      const data = await r.json();
+      level = data.level || 'unknown';
+
+      // نمایش اطلاعات منابع
+      const cf = data.sources?.cloudflare;
+      const io = data.sources?.ioda;
+      if (cf?.available) {
+        sourceInfo = `Cloudflare: افت ${cf.drop}%`;
+        if (io?.available) sourceInfo += ` | IODA: ${io.hasAlert ? 'هشدار' : 'طبیعی'}`;
+      }
+    }
+  } catch (e) {
+    // اگه API در دسترس نبود — fallback به IODA مستقیم
+    try {
+      const now = Math.floor(Date.now() / 1000);
+      const r2 = await fetch(
+        `https://api.ioda.inetintel.cc.gatech.edu/v2/signals/raw?entityType=country&entityCode=IR&datasource=bgp&from=${now-3600}&until=${now}`,
+        { signal: AbortSignal.timeout(6000) }
+      );
+      if (r2.ok) {
+        const d = await r2.json();
+        const alerts = d?.data?.IR?.bgp?.alerts || [];
+        level = alerts.length > 0 ? 'bad' : 'partial';
+        sourceInfo = `IODA مستقیم: ${alerts.length} هشدار`;
+      }
+    } catch(e2) {
+      level = 'unknown';
+    }
+  }
+
+  applyStatus(level);
+
+  // نمایش منبع داده
+  if (sourceInfo) {
+    const el = document.getElementById('last-event');
+    el.textContent = sourceInfo;
+  }
+
+  btn.classList.remove('loading');
+  lbl.textContent = '↻ بررسی مجدد';
+}
+
+// ── HISTORY BAR ────────────────────────────────────────
+function buildHistory() {
+  const el = document.getElementById('history-bar');
+  const colors = ['#00e676','#00e676','#ffd740','#ffd740','#ff6d00','#ff1744','#ff1744','#ff6d00','#ffd740','#ffd740',
+                  '#ffd740','#00e676','#00e676','#ffd740','#ffd740','#ffd740','#ff6d00','#ffd740','#ffd740','#00e676',
+                  '#ffd740','#ffd740','#ffd740','#ffd740','#ff6d00','#ff6d00','#ffd740','#ffd740','#00e676','#00e676',
+                  '#ffd740','#ffd740','#ffd740','#ff6d00','#ffd740','#ffd740','#00e676','#00e676','#ffd740','#ffd740',
+                  '#ffd740','#ffd740','#ff6d00','#ffd740','#00e676','#ffd740','#ffd740','#ffd740'];
+  const tips = ['طبیعی','طبیعی','اختلال جزئی','اختلال جزئی','اختلال شدید','قطعی','قطعی','اختلال شدید'];
+  colors.forEach((c, i) => {
+    const b = document.createElement('div');
+    b.className = 'h-bar';
+    const pct = c === '#00e676' ? 85+Math.random()*15 : c === '#ffd740' ? 40+Math.random()*30 : c === '#ff6d00' ? 15+Math.random()*20 : 5+Math.random()*10;
+    b.style.height = pct + '%';
+    b.style.background = c;
+    b.style.opacity = '0.8';
+    b.setAttribute('data-tip', tips[i%tips.length]);
+    el.appendChild(b);
+  });
+}
+
+// ── COPY CODE ──────────────────────────────────────────
+function copyCode() {
+  const code = document.querySelector('.code-block').innerText.replace('کپی کد','').trim();
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ کپی شد';
+    setTimeout(() => btn.textContent = 'کپی کد', 2000);
+  });
+}
+
+// ── INIT ───────────────────────────────────────────────
+buildHistory();
+applyStatus('partial'); // وضعیت پیش‌فرض تا API جواب بده
+setTimeout(checkStatus, 800);
+</script>
+</body>
+</html>
